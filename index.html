@@ -10,40 +10,21 @@
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --bg-main: #000000;
-            --text-main: #ffffff;
-            --accent: #3b82f6;
-        }
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            transition: all 0.3s ease;
-        }
-        /* Mode Cyber / Terminal */
+        :root { --bg-main: #000000; --text-main: #ffffff; --accent: #3b82f6; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-main); color: var(--text-main); transition: all 0.3s ease; }
         .font-mono { font-family: 'Fira Code', monospace; }
         .cyber-glow { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-        
-        /* Bionic Reading Styles */
         .bionic-bold { font-weight: 900; opacity: 1; }
         .bionic-dim { opacity: 0.7; font-weight: 400; }
-        
-        /* Solusi Anti-Macet */
         button, input, textarea, select { pointer-events: auto !important; }
-        
-        /* Scrollbar Halus */
         .no-scrollbar::-webkit-scrollbar { width: 4px; }
         .no-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        
-        /* Ghost Mode Aesthetics */
         .ghost-active { background-color: #1a0f0f !important; border-color: #501111 !important; }
-        
-        /* Animasi Loader */
         .typing-indicator span { display: inline-block; width: 6px; height: 6px; background-color: white; border-radius: 50%; margin: 0 2px; animation: bounce 1.4s infinite ease-in-out both; }
         .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
         .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
@@ -74,9 +55,12 @@
                 <div class="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative">
                     <div class="flex justify-between mb-2">
                         <span class="text-xs font-bold text-slate-400">INPUT (Ketik /help untuk commands)</span>
-                        <button onclick="checkClipboard()" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded hover:bg-blue-500 hover:text-white transition">Paste Cepat</button>
+                        <div class="flex gap-2">
+                            <button onclick="undoText()" class="text-[10px] bg-slate-500/20 text-slate-300 px-2 py-0.5 rounded hover:bg-slate-500 hover:text-white transition" title="Time Machine">⏪ Undo</button>
+                            <button onclick="checkClipboard()" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded hover:bg-blue-500 hover:text-white transition">Paste Cepat</button>
+                        </div>
                     </div>
-                    <textarea id="txtInput" class="w-full bg-transparent outline-none text-lg resize-none min-h-[100px] placeholder-slate-600" placeholder="Ketik teks, URL, atau kode..."></textarea>
+                    <textarea id="txtInput" class="w-full bg-transparent outline-none text-lg resize-none min-h-[100px] placeholder-slate-600" placeholder="Ketik teks, URL, angka ($100), atau kode..."></textarea>
                 </div>
 
                 <div class="flex justify-between items-center px-2">
@@ -90,7 +74,7 @@
                     </label>
                 </div>
 
-                <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-lg relative min-h-[150px] flex flex-col">
+                <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-lg relative flex flex-col">
                     <div class="flex justify-between items-center mb-2 z-20">
                         <select id="valTxtTgt" class="bg-black/50 border border-white/20 rounded-lg px-3 py-1.5 text-sm outline-none">
                             <option value="en">English</option>
@@ -106,9 +90,19 @@
                         <div id="bionicOutput" class="hidden w-full h-full text-lg text-blue-100 overflow-y-auto no-scrollbar"></div>
                     </div>
 
-                    <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-white/5">
-                        <button onclick="openShareModal()" class="p-2 hover:text-green-400 text-slate-400 transition" title="Bagikan / QR"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
-                        <button onclick="copyText('txtOutput')" class="p-2 hover:text-blue-400 text-slate-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg></button>
+                    <div class="mt-4 pt-3 border-t border-white/5 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <button onclick="saveToSnippet()" class="text-xs flex items-center gap-1 text-yellow-500/80 hover:text-yellow-400"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg> Simpan</button>
+                            <div class="flex gap-3">
+                                <button onclick="openShareModal()" class="text-slate-400 hover:text-green-400 transition" title="Bagikan / QR"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
+                                <button onclick="copyText('txtOutput')" class="text-slate-400 hover:text-blue-400 transition" title="Copy"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg></button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mt-2">
+                            <button onclick="exportToImage()" class="bg-blue-900/40 hover:bg-blue-600 text-blue-300 hover:text-white py-1.5 rounded-lg text-[10px] font-bold border border-blue-500/30 transition">🖼️ Export Card</button>
+                            <button onclick="speakTextWithVoice(0.2, 0.8)" class="bg-purple-900/40 hover:bg-purple-600 text-purple-300 hover:text-white py-1.5 rounded-lg text-[10px] font-bold border border-purple-500/30 transition">🤖 Suara Robot</button>
+                            <button onclick="togglePiP()" class="bg-slate-800 hover:bg-slate-600 text-slate-300 hover:text-white py-1.5 rounded-lg text-[10px] font-bold border border-slate-600 transition">🪟 Mode PiP</button>
+                        </div>
                     </div>
                 </div>
 
@@ -120,32 +114,66 @@
             <div class="max-w-3xl w-full mx-auto space-y-4">
                 <div class="border border-green-500/30 rounded-xl p-4 bg-black cyber-glow">
                     <h2 class="text-green-400 font-bold mb-2 text-sm">> CYBERSECURITY_TOOLS</h2>
-                    <select id="cyberMode" class="w-full bg-slate-900 border border-green-500/50 text-green-400 p-2 rounded mb-3 outline-none">
+                    <select id="cyberMode" onchange="togglePasswordInput()" class="w-full bg-slate-900 border border-green-500/50 text-green-400 p-2 rounded mb-3 outline-none">
                         <option value="hex">Text <-> Hexadecimal</option>
                         <option value="base64">Text <-> Base64</option>
-                        <option value="stegano">Secret Steganography</option>
+                        <option value="stegano">Secret Steganography (AES-256)</option>
                     </select>
+                    
                     <textarea id="cyberInput" class="w-full bg-slate-900 border border-green-500/20 text-green-300 p-2 rounded min-h-[100px] outline-none" placeholder="Masukkan Data..."></textarea>
-                    <div class="flex gap-2 mt-2">
-                        <button onclick="runCyber('encode')" class="flex-1 bg-green-900/50 hover:bg-green-700 text-green-300 py-2 border border-green-500/50 rounded transition">ENCODE</button>
-                        <button onclick="runCyber('decode')" class="flex-1 bg-red-900/50 hover:bg-red-700 text-red-300 py-2 border border-red-500/50 rounded transition">DECODE</button>
+                    
+                    <input type="password" id="cyberPassword" class="hidden w-full bg-slate-900 border border-red-500/50 text-red-400 p-2 rounded mt-2 outline-none placeholder-red-700" placeholder="Masukkan Password Enkripsi...">
+
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="runCyber('encode')" class="flex-1 bg-green-900/50 hover:bg-green-700 text-green-300 py-2 border border-green-500/50 rounded transition">ENCODE / ENCRYPT</button>
+                        <button onclick="runCyber('decode')" class="flex-1 bg-red-900/50 hover:bg-red-700 text-red-300 py-2 border border-red-500/50 rounded transition">DECODE / DECRYPT</button>
                     </div>
-                    <textarea id="cyberOutput" readonly class="w-full bg-black border border-green-500/20 text-green-400 p-2 rounded min-h-[100px] mt-3 outline-none break-all"></textarea>
+                    <textarea id="cyberOutput" readonly class="w-full bg-black border border-green-500/20 text-green-400 p-2 rounded min-h-[100px] mt-3 outline-none break-all" placeholder="Output..."></textarea>
                 </div>
             </div>
         </section>
 
-        </main>
+        <section id="tab-media" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar">
+            <div class="max-w-3xl w-full mx-auto space-y-4">
+                <div class="bg-white/5 border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-blue-500 transition-all group relative">
+                    <input type="file" id="fileInput" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
+                    <div id="filePreview" class="space-y-2">
+                        <svg class="w-12 h-12 mx-auto text-slate-500 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="text-sm font-bold text-slate-400">Klik / Drop Gambar untuk OCR</p>
+                    </div>
+                </div>
+                <div id="ocrStatus" class="hidden text-xs text-blue-400 animate-pulse font-mono text-center italic">Processing Image...</div>
+                <div class="flex gap-2">
+                    <button onclick="processOCR()" class="flex-1 py-3 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 transition">EXTRACT TEXT</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-ai" class="hidden w-full h-full flex flex-col p-4 overflow-hidden">
+            <div class="max-w-3xl w-full mx-auto h-full flex flex-col space-y-4">
+                <div id="aiChatBox" class="flex-grow bg-black/40 border border-white/10 rounded-2xl p-4 overflow-y-auto no-scrollbar space-y-4 text-sm">
+                    <div class="bg-blue-600/20 p-3 rounded-lg border border-blue-500/30 text-blue-200">
+                        <strong>Rifqy AI:</strong> Halo! Aku bisa bantu jelaskan konteks terjemahanmu, cari sinonim, atau perbaiki grammar. Tanyakan apapun!
+                    </div>
+                </div>
+                <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-white/10">
+                    <input id="aiInput" type="text" class="flex-grow bg-transparent outline-none px-2 text-sm" placeholder="Tanya konteks / sinonim...">
+                    <button onclick="askAI()" class="p-2 bg-blue-600 rounded-lg hover:bg-blue-500 transition"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg></button>
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <nav id="mainNav" class="shrink-0 h-[65px] bg-black border-t border-white/10 flex justify-around items-center z-50">
         <button onclick="goTab('text')" id="nav-text" class="flex flex-col items-center gap-1 text-blue-500 font-bold scale-110 transition"><span class="text-[10px]">TERJEMAH</span></button>
         <button onclick="goTab('cyber')" id="nav-cyber" class="flex flex-col items-center gap-1 text-slate-600 hover:text-green-400 transition"><span class="text-[10px] font-mono">>_CYBER</span></button>
-        <button onclick="alert('Fitur OCR, File & Voice sedang disiapkan di Tahap 2!')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-white transition"><span class="text-[10px]">MEDIA</span></button>
-        <button onclick="alert('AI Context & Web Trans sedang disiapkan di Tahap 3!')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-purple-400 transition"><span class="text-[10px]">SMART AI</span></button>
+        <button onclick="goTab('media')" id="nav-media" class="flex flex-col items-center gap-1 text-slate-600 hover:text-white transition"><span class="text-[10px]">MEDIA</span></button>
+        <button onclick="goTab('ai')" id="nav-ai" class="flex flex-col items-center gap-1 text-slate-600 hover:text-purple-400 transition"><span class="text-[10px]">SMART AI</span></button>
     </nav>
 
     <div id="modalQR" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
-        <div class="bg-slate-900 w-full max-w-sm rounded-2xl border border-white/20 p-6 shadow-2xl text-center">
+        <div class="bg-slate-900 w-full max-w-sm rounded-2xl border border-white/20 p-6 shadow-2xl text-center relative">
             <h3 class="text-lg font-bold mb-4 text-white">Share Result</h3>
             <div id="qrContainer" class="bg-white p-4 rounded-xl inline-block mb-4 mx-auto"></div>
             <div class="flex gap-2 justify-center mb-4">
@@ -157,5 +185,20 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="rifqy-security.js"></script>
+    <script src="rifqy-media.js"></script>
+    <script src="rifqy-smart.js"></script>
+
+    <script>
+        function togglePasswordInput() {
+            const mode = document.getElementById('cyberMode').value;
+            const pwdInput = document.getElementById('cyberPassword');
+            if(mode === 'stegano') {
+                pwdInput.classList.remove('hidden');
+            } else {
+                pwdInput.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
