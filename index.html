@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RifqyTranslatePro Ultimate</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #000000;
+            --text-main: #ffffff;
+            --accent: #3b82f6;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+        /* Mode Cyber / Terminal */
+        .font-mono { font-family: 'Fira Code', monospace; }
+        .cyber-glow { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        
+        /* Bionic Reading Styles */
+        .bionic-bold { font-weight: 900; opacity: 1; }
+        .bionic-dim { opacity: 0.7; font-weight: 400; }
+        
+        /* Solusi Anti-Macet */
+        button, input, textarea, select { pointer-events: auto !important; }
+        
+        /* Scrollbar Halus */
+        .no-scrollbar::-webkit-scrollbar { width: 4px; }
+        .no-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        
+        /* Ghost Mode Aesthetics */
+        .ghost-active { background-color: #1a0f0f !important; border-color: #501111 !important; }
+        
+        /* Animasi Loader */
+        .typing-indicator span { display: inline-block; width: 6px; height: 6px; background-color: white; border-radius: 50%; margin: 0 2px; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    </style>
+</head>
+<body class="h-dvh w-full flex flex-col overflow-hidden relative">
+
+    <div id="mainHeader" class="shrink-0 h-[60px] px-4 bg-black/90 backdrop-blur border-b border-white/10 flex justify-between items-center z-50">
+        <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-wide select-none">
+            RifqyTranslate<span class="text-white text-[10px] align-top ml-1 border border-white/20 px-1 rounded bg-white/10">PRO</span>
+        </h1>
+        <div class="flex items-center gap-3">
+            <button id="btnGhost" onclick="toggleGhostMode()" class="text-slate-500 hover:text-red-500 transition" title="Ghost Mode">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </button>
+            <button onclick="toggleZenMode()" class="text-slate-500 hover:text-white transition" title="Zen Mode">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <main id="mainArea" class="flex-grow relative overflow-hidden bg-gradient-to-b from-slate-900 to-black">
+        
+        <section id="tab-text" class="w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar">
+            <div class="max-w-3xl w-full mx-auto space-y-4">
+                
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-400">INPUT (Ketik /help untuk commands)</span>
+                        <button onclick="checkClipboard()" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded hover:bg-blue-500 hover:text-white transition">Paste Cepat</button>
+                    </div>
+                    <textarea id="txtInput" class="w-full bg-transparent outline-none text-lg resize-none min-h-[100px] placeholder-slate-600" placeholder="Ketik teks, URL, atau kode..."></textarea>
+                </div>
+
+                <div class="flex justify-between items-center px-2">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="chkBionic" class="w-4 h-4 accent-blue-500 rounded cursor-pointer">
+                        <span class="text-xs text-slate-400 font-bold group-hover:text-white transition">Bionic Reading</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="chkSlang" class="w-4 h-4 accent-purple-500 rounded cursor-pointer" checked>
+                        <span class="text-xs text-slate-400 font-bold group-hover:text-white transition">Auto-Baku (Slang)</span>
+                    </label>
+                </div>
+
+                <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-lg relative min-h-[150px] flex flex-col">
+                    <div class="flex justify-between items-center mb-2 z-20">
+                        <select id="valTxtTgt" class="bg-black/50 border border-white/20 rounded-lg px-3 py-1.5 text-sm outline-none">
+                            <option value="en">English</option>
+                            <option value="id">Indonesian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                        </select>
+                        <span id="speedBadge" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20"></span>
+                    </div>
+                    
+                    <div class="relative flex-grow min-h-[100px]" id="outputContainer">
+                        <textarea id="txtOutput" readonly class="w-full h-full bg-transparent outline-none text-lg resize-none text-blue-100 placeholder-slate-600" placeholder="Hasil..."></textarea>
+                        <div id="bionicOutput" class="hidden w-full h-full text-lg text-blue-100 overflow-y-auto no-scrollbar"></div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-white/5">
+                        <button onclick="openShareModal()" class="p-2 hover:text-green-400 text-slate-400 transition" title="Bagikan / QR"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
+                        <button onclick="copyText('txtOutput')" class="p-2 hover:text-blue-400 text-slate-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg></button>
+                    </div>
+                </div>
+
+                <button onclick="runTranslate()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold shadow-lg active:scale-95 transition">TERJEMAHKAN</button>
+            </div>
+        </section>
+
+        <section id="tab-cyber" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar font-mono">
+            <div class="max-w-3xl w-full mx-auto space-y-4">
+                <div class="border border-green-500/30 rounded-xl p-4 bg-black cyber-glow">
+                    <h2 class="text-green-400 font-bold mb-2 text-sm">> CYBERSECURITY_TOOLS</h2>
+                    <select id="cyberMode" class="w-full bg-slate-900 border border-green-500/50 text-green-400 p-2 rounded mb-3 outline-none">
+                        <option value="hex">Text <-> Hexadecimal</option>
+                        <option value="base64">Text <-> Base64</option>
+                        <option value="stegano">Secret Steganography</option>
+                    </select>
+                    <textarea id="cyberInput" class="w-full bg-slate-900 border border-green-500/20 text-green-300 p-2 rounded min-h-[100px] outline-none" placeholder="Masukkan Data..."></textarea>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="runCyber('encode')" class="flex-1 bg-green-900/50 hover:bg-green-700 text-green-300 py-2 border border-green-500/50 rounded transition">ENCODE</button>
+                        <button onclick="runCyber('decode')" class="flex-1 bg-red-900/50 hover:bg-red-700 text-red-300 py-2 border border-red-500/50 rounded transition">DECODE</button>
+                    </div>
+                    <textarea id="cyberOutput" readonly class="w-full bg-black border border-green-500/20 text-green-400 p-2 rounded min-h-[100px] mt-3 outline-none break-all"></textarea>
+                </div>
+            </div>
+        </section>
+
+        </main>
+
+    <nav id="mainNav" class="shrink-0 h-[65px] bg-black border-t border-white/10 flex justify-around items-center z-50">
+        <button onclick="goTab('text')" id="nav-text" class="flex flex-col items-center gap-1 text-blue-500 font-bold scale-110 transition"><span class="text-[10px]">TERJEMAH</span></button>
+        <button onclick="goTab('cyber')" id="nav-cyber" class="flex flex-col items-center gap-1 text-slate-600 hover:text-green-400 transition"><span class="text-[10px] font-mono">>_CYBER</span></button>
+        <button onclick="alert('Fitur OCR, File & Voice sedang disiapkan di Tahap 2!')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-white transition"><span class="text-[10px]">MEDIA</span></button>
+        <button onclick="alert('AI Context & Web Trans sedang disiapkan di Tahap 3!')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-purple-400 transition"><span class="text-[10px]">SMART AI</span></button>
+    </nav>
+
+    <div id="modalQR" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-slate-900 w-full max-w-sm rounded-2xl border border-white/20 p-6 shadow-2xl text-center">
+            <h3 class="text-lg font-bold mb-4 text-white">Share Result</h3>
+            <div id="qrContainer" class="bg-white p-4 rounded-xl inline-block mb-4 mx-auto"></div>
+            <div class="flex gap-2 justify-center mb-4">
+                <button onclick="shareLink('wa')" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm font-bold">WhatsApp</button>
+                <button onclick="shareLink('native')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-bold">Share Link</button>
+            </div>
+            <button onclick="document.getElementById('modalQR').classList.add('hidden')" class="w-full py-2 bg-white/10 rounded-lg text-slate-300 hover:bg-white/20">Tutup</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
