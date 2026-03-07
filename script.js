@@ -1,95 +1,58 @@
 // ==========================================
-// RIFQYTRANSLATE PRO - ULTIMATE CORE ENGINE
+// CORE TRANSLATE ENGINE & UI
 // ==========================================
 
-// Global State
-let state = {
-    isGhost: false,
-    isZen: false,
-    activeTab: 'text',
-    history: []
+window.onload = () => {
+    initDB();
 };
 
-// 1. Inisialisasi
-document.addEventListener('DOMContentLoaded', () => {
-    try { state.history = JSON.parse(localStorage.getItem('rt_ultimate_hist')) || []; } catch(e){}
-    setupCommandInterceptor();
-});
+function initDB() {
+    const tTgt = document.getElementById('valTxtTgt');
+    const vSrc = document.getElementById('voiceSrc');
+    const vTgt = document.getElementById('voiceTgt');
 
-// 2. Tab Manager
+    langTextDB.forEach(l => {
+        tTgt.appendChild(new Option(l.name, l.code));
+        vTgt.appendChild(new Option(l.name, l.code));
+    });
+    langVoiceDB.forEach(v => {
+        vSrc.appendChild(new Option(v[0], v[1]));
+    });
+}
+
 function goTab(tab) {
-    ['text', 'cyber'].forEach(t => {
+    ['text', 'voice', 'cyber', 'media', 'ai'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`nav-${t}`).classList.replace('text-blue-500', 'text-slate-600');
-        document.getElementById(`nav-${t}`).classList.replace('text-green-400', 'text-slate-600');
-        document.getElementById(`nav-${t}`).classList.remove('scale-110', 'font-bold');
+        let nav = document.getElementById(`nav-${t}`);
+        nav.classList.replace('text-blue-500', 'text-slate-500');
+        nav.classList.replace('text-red-400', 'text-slate-500');
+        nav.classList.replace('text-green-400', 'text-slate-500');
+        nav.classList.replace('text-pink-400', 'text-slate-500');
+        nav.classList.replace('text-indigo-400', 'text-slate-500');
+        nav.classList.remove('scale-110', 'font-bold');
     });
     
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
-    let color = tab === 'cyber' ? 'text-green-400' : 'text-blue-500';
-    document.getElementById(`nav-${tab}`).classList.replace('text-slate-600', color);
-    document.getElementById(`nav-${tab}`).classList.add('scale-110', 'font-bold');
-    state.activeTab = tab;
-}
-
-// 3. UI Toggles (Ghost & Zen Mode)
-function toggleGhostMode() {
-    state.isGhost = !state.isGhost;
-    let btn = document.getElementById('btnGhost');
-    let main = document.getElementById('mainArea');
+    let navActive = document.getElementById(`nav-${tab}`);
+    navActive.classList.add('scale-110', 'font-bold');
     
-    if(state.isGhost) {
-        btn.classList.replace('text-slate-500', 'text-red-500');
-        main.classList.add('ghost-active');
-        alert("Ghost Mode AKTIF: Anti-Log. Cache & History dimatikan.");
-    } else {
-        btn.classList.replace('text-red-500', 'text-slate-500');
-        main.classList.remove('ghost-active');
-    }
+    const colors = {text:'text-blue-500', voice:'text-red-400', cyber:'text-green-400', media:'text-pink-400', ai:'text-indigo-400'};
+    navActive.classList.replace('text-slate-500', colors[tab]);
 }
 
-function toggleZenMode() {
-    state.isZen = !state.isZen;
-    document.getElementById('mainHeader').style.display = state.isZen ? 'none' : 'flex';
-    document.getElementById('mainNav').style.display = state.isZen ? 'none' : 'flex';
+function toggleGhostMode() {
+    document.getElementById('mainArea').classList.toggle('ghost-active');
+    document.getElementById('btnGhost').classList.toggle('text-red-500');
 }
 
-// 4. Command Interceptor & Auto-Slang
-function setupCommandInterceptor() {
-    document.getElementById('txtInput').addEventListener('input', function(e) {
-        let txt = this.value;
-        if(txt.trim() === '/clear') { this.value = ''; document.getElementById('txtOutput').value = ''; return; }
-        if(txt.trim() === '/ghost') { this.value = ''; toggleGhostMode(); return; }
-        if(txt.trim() === '/help') { alert("Commands: /clear, /ghost, /cyber"); this.value=''; return; }
-        if(txt.trim() === '/cyber') { this.value = ''; goTab('cyber'); return; }
-        
-        // Auto URL Detector
-        if((txt.startsWith('http://') || txt.startsWith('https://')) && txt.length > 10) {
-            if(confirm("Buka URL ini di Tab Web?")) { window.open(`https://translate.google.com/translate?sl=auto&tl=id&u=${encodeURIComponent(txt)}`); }
-        }
-    });
-}
-
-function applySlangDictionary(text) {
-    if(!document.getElementById('chkSlang').checked) return text;
-    const dict = { "yg": "yang", "gk": "tidak", "gak": "tidak", "bs": "bisa", "krn": "karena", "kalo": "kalau", "dgn": "dengan" };
-    let words = text.split(' ');
-    return words.map(w => dict[w.toLowerCase()] || w).join(' ');
-}
-
-// 5. Core Translate Engine
 async function runTranslate() {
-    let inputEl = document.getElementById('txtInput');
-    let rawText = inputEl.value.trim();
+    let rawText = document.getElementById('txtInput').value.trim();
     if(!rawText) return;
-
-    let textToTranslate = applySlangDictionary(rawText);
+    
+    let textToTranslate = document.getElementById('chkSlang').checked ? rawText.replace(/yg/gi, "yang").replace(/gk/gi, "tidak") : rawText;
     let tgt = document.getElementById('valTxtTgt').value;
     let outEl = document.getElementById('txtOutput');
-    let badge = document.getElementById('speedBadge');
-    
     outEl.value = "Menerjemahkan...";
-    let startTime = performance.now();
 
     try {
         let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tgt}&dt=t&q=${encodeURIComponent(textToTranslate)}`;
@@ -97,101 +60,23 @@ async function runTranslate() {
         let json = await res.json();
         let result = json[0].map(x => x[0]).join('');
         
-        let endTime = performance.now();
-        let ping = Math.round(endTime - startTime);
-        
-        // Handle Bionic Reading
         if(document.getElementById('chkBionic').checked) {
             outEl.classList.add('hidden');
             let bioEl = document.getElementById('bionicOutput');
             bioEl.classList.remove('hidden');
-            bioEl.innerHTML = generateBionic(result);
+            bioEl.innerHTML = result.split(' ').map(w => `<span class="bionic-bold">${w.substring(0, Math.ceil(w.length/2))}</span><span class="bionic-dim">${w.substring(Math.ceil(w.length/2))}</span>`).join(' ');
         } else {
             outEl.classList.remove('hidden');
             document.getElementById('bionicOutput').classList.add('hidden');
             outEl.value = result;
         }
-
-        badge.innerText = `${ping}ms`;
-        badge.classList.remove('hidden');
-        
-        if(!state.isGhost) saveHistory(rawText, result);
-
-    } catch(err) {
-        outEl.value = "Koneksi gagal/Server Error.";
-    }
+    } catch(err) { outEl.value = "Error koneksi API Translate."; }
 }
 
-// Bionic Reading Generator
-function generateBionic(text) {
-    let words = text.split(' ');
-    return words.map(word => {
-        let half = Math.ceil(word.length / 2);
-        let boldPart = word.substring(0, half);
-        let dimPart = word.substring(half);
-        return `<span class="bionic-bold">${boldPart}</span><span class="bionic-dim">${dimPart}</span>`;
-    }).join(' ');
-}
-
-// 6. Cyber / Security Tools
-function runCyber(action) {
-    let mode = document.getElementById('cyberMode').value;
-    let txt = document.getElementById('cyberInput').value;
-    let out = document.getElementById('cyberOutput');
-    if(!txt) return;
-
-    try {
-        if(mode === 'hex') {
-            if(action === 'encode') out.value = txt.split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(' ');
-            else out.value = txt.split(' ').map(h => String.fromCharCode(parseInt(h, 16))).join('');
-        } 
-        else if(mode === 'base64') {
-            if(action === 'encode') out.value = btoa(unescape(encodeURIComponent(txt)));
-            else out.value = decodeURIComponent(escape(atob(txt)));
-        }
-        else if(mode === 'stegano') {
-            alert("Fitur AES-256 Stegano akan diaktifkan di update kriptografi berikutnya!");
-        }
-    } catch(e) {
-        out.value = "Error: Format tidak valid untuk " + action;
-    }
-}
-
-// 7. Utilities (QR, Clipboard, History)
-async function checkClipboard() {
-    try {
-        let text = await navigator.clipboard.readText();
-        if(text) { document.getElementById('txtInput').value = text; }
-    } catch (err) { alert("Izin clipboard ditolak."); }
-}
-
-function copyText(id) {
-    let el = document.getElementById(id);
-    navigator.clipboard.writeText(el.value || el.innerText);
-    alert("Teks disalin!");
-}
-
+function copyText(id) { navigator.clipboard.writeText(document.getElementById(id).value); alert("Teks Disalin!"); }
+async function checkClipboard() { try { document.getElementById('txtInput').value = await navigator.clipboard.readText(); } catch(e){} }
 function openShareModal() {
-    let text = document.getElementById('txtOutput').value;
-    if(!text || text === "Menerjemahkan...") return alert("Belum ada hasil.");
-    
     document.getElementById('modalQR').classList.remove('hidden');
-    let qc = document.getElementById('qrContainer');
-    qc.innerHTML = '';
-    new QRCode(qc, { text: text, width: 150, height: 150 });
-}
-
-function shareLink(type) {
-    let text = document.getElementById('txtOutput').value;
-    if(type === 'wa') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
-    else {
-        if(navigator.share) navigator.share({ title: 'RifqyTranslate', text: text });
-        else copyText('txtOutput');
-    }
-}
-
-function saveHistory(inTxt, outTxt) {
-    state.history.unshift({ in: inTxt, out: outTxt, time: new Date().getTime() });
-    if(state.history.length > 30) state.history.pop();
-    localStorage.setItem('rt_ultimate_hist', JSON.stringify(state.history));
+    document.getElementById('qrContainer').innerHTML = '';
+    new QRCode(document.getElementById('qrContainer'), { text: document.getElementById('txtOutput').value, width: 150, height: 150 });
 }
