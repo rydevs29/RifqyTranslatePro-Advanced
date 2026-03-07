@@ -1,70 +1,70 @@
 // ==========================================
-// MODULE 4: VOICE AI (Speech-to-Text)
-// File: rifqy-voice.js
+// TAB 2: LIVE VOICE TRANSLATOR & TTS
 // ==========================================
 
-let isRecording = false;
-let recognition;
+let isVoiceActive = false;
+let voiceRecog;
 
-function startVoiceRecognition() {
-    // Periksa sokongan pelayar (browser support)
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("Maaf, pelayar (browser) anda tidak menyokong ciri Pengecaman Suara. Sila gunakan Google Chrome.");
-        return;
-    }
-
-    const btnMic = document.getElementById('btnMic');
-
-    // Jika sedang merakam, hentikan
-    if (isRecording) {
-        recognition.stop();
-        return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
+function startInstantVoice() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return alert("Browser tidak support Voice API.");
     
-    // Anda boleh tukar 'id-ID' kepada 'ms-MY' atau 'en-US' mengikut keperluan
-    recognition.lang = 'id-ID'; 
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    if(isVoiceActive) { voiceRecog.stop(); return; }
 
-    recognition.onstart = function() {
-        isRecording = true;
-        btnMic.classList.replace('bg-red-500/20', 'bg-red-600');
-        btnMic.classList.replace('text-red-400', 'text-white');
-        btnMic.innerHTML = `<span class="animate-pulse">🔴 Mendengar...</span>`;
+    const VoiceSrcCode = document.getElementById('voiceSrc').value; // e.g. "id-ID"
+    const VoiceTgtCode = document.getElementById('voiceTgt').value; // e.g. "en"
+    const inBox = document.getElementById('voiceTextIn');
+    const outBox = document.getElementById('voiceTextOut');
+    const anim = document.getElementById('waveAnim');
+
+    voiceRecog = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    voiceRecog.lang = VoiceSrcCode;
+    voiceRecog.interimResults = true;
+
+    voiceRecog.onstart = () => {
+        isVoiceActive = true;
+        anim.classList.remove('hidden');
+        inBox.innerText = "...";
+        outBox.innerText = "...";
     };
 
-    recognition.onresult = function(event) {
-        const speechResult = event.results[0][0].transcript;
-        const txtInput = document.getElementById('txtInput');
+    voiceRecog.onresult = (e) => {
+        let transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+        inBox.innerText = `"${transcript}"`;
+    };
+
+    voiceRecog.onend = async () => {
+        isVoiceActive = false;
+        anim.classList.add('hidden');
         
-        // Tambah teks suara ke dalam kotak teks sedia ada
-        txtInput.value = txtInput.value ? txtInput.value + ' ' + speechResult : speechResult;
-        
-        // Simpan log ke Time Machine secara manual (jika ada)
-        if(typeof timeMachineLog !== 'undefined') {
-            timeMachineLog.push(txtInput.value);
+        let rawText = inBox.innerText.replace(/"/g, '');
+        if(rawText && rawText !== "...") {
+            outBox.innerText = "Menerjemahkan...";
+            try {
+                let res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${VoiceTgtCode}&dt=t&q=${encodeURIComponent(rawText)}`);
+                let json = await res.json();
+                outBox.innerText = json[0].map(x => x[0]).join('');
+                
+                // Otomatis bacakan hasil
+                speakNatural('voiceTextOut', 'voiceTgt');
+            } catch(e) { outBox.innerText = "Gagal menerjemahkan."; }
         }
     };
+    voiceRecog.start();
+}
 
-    recognition.onspeechend = function() {
-        recognition.stop();
-    };
+function speakNatural(textId, targetSelectId) {
+    const text = document.getElementById(textId).value || document.getElementById(textId).innerText;
+    const tgtLang = document.getElementById(targetSelectId).value; // e.g. "en"
+    if(!text) return;
 
-    recognition.onend = function() {
-        isRecording = false;
-        btnMic.classList.replace('bg-red-600', 'bg-red-500/20');
-        btnMic.classList.replace('text-white', 'text-red-400');
-        btnMic.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg> Bicara`;
-    };
+    window.speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.rate = 0.9;
+    msg.pitch = 1.0;
 
-    recognition.onerror = function(event) {
-        alert("Ralat Suara: " + event.error);
-        isRecording = false;
-    };
+    // Deteksi dari database untuk mencari BCP-47 Code yang paling cocok
+    let match = langVoiceDB.find(v => v[2] === tgtLang);
+    msg.lang = match ? match[1] : tgtLang;
 
-    // Mulakan rakaman
-    recognition.start();
+    window.speechSynthesis.speak(msg);
 }
