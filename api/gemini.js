@@ -1,14 +1,23 @@
 // File: api/gemini.js (ULTIMATE SPEED 2.0 FLASH)
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
     const { promptText } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
+    if (!apiKey) {
+        return res.status(500).json({ error: "GEMINI_API_KEY belum diset di environment variable." });
+    }
+
+    if (!promptText) {
+        return res.status(400).json({ error: "Prompt text tidak boleh kosong." });
+    }
+
     try {
-        // Kita gunakan endpoint v1beta karena model 2.0 masih dalam tahap pengembangan/terbaru
-        // Nama model: gemini-2.0-flash-exp (Experimental) atau gemini-2.0-flash
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+        // Gunakan model yang stabil (1.5-flash) terlebih dahulu
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -21,9 +30,9 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (!response.ok) {
-            // Jika 2.0-flash-exp tidak ditemukan, kita fallback (cadangan) ke 1.5-flash
-            console.log("Mencoba fallback ke model 1.5-flash...");
-            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            // Jika gagal, coba fallback ke model lain
+            console.log("Fallback ke model lain...");
+            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
             const fbRes = await fetch(fallbackUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -33,8 +42,9 @@ export default async function handler(req, res) {
             return res.status(fbRes.status).json(fbData);
         }
 
-        res.status(200).json(data);
+        res.status(response.status).json(data);
     } catch (error) {
-        res.status(500).json({ error: "Gagal terhubung ke Gemini AI. Cek konfigurasi Vercel." });
+        console.error("Error di server Gemini:", error);
+        res.status(500).json({ error: "Gagal terhubung ke Gemini AI." });
     }
 }
