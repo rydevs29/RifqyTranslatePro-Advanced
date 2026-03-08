@@ -2,112 +2,203 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RifqyTranslatePro & AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RifqyTranslatePro Ultimate</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --bg-main: #000000; --text-main: #ffffff; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-main); color: var(--text-main); transition: all 0.3s ease; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        .cyber-glow { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .bionic-bold { font-weight: 900; opacity: 1; }
+        .bionic-dim { opacity: 0.7; font-weight: 400; }
+        button, input, textarea, select { pointer-events: auto !important; }
+        .no-scrollbar::-webkit-scrollbar { width: 4px; }
+        .no-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        .ghost-active { background-color: #1a0f0f !important; border-color: #501111 !important; }
+        .typing-indicator span { display: inline-block; width: 6px; height: 6px; background-color: white; border-radius: 50%; margin: 0 2px; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        /* Animasi Gelombang Suara */
+        .wave { width: 4px; background: #3b82f6; border-radius: 2px; animation: wave 1s ease-in-out infinite; }
+        .wave:nth-child(2) { animation-delay: 0.2s; } .wave:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes wave { 0%, 100% { height: 10px; } 50% { height: 30px; } }
     </style>
 </head>
-<body class="bg-slate-950 text-white font-sans h-screen flex flex-col">
+<body class="h-dvh w-full flex flex-col overflow-hidden relative">
 
-    <header class="p-4 bg-slate-900 border-b border-white/10 flex justify-between items-center shadow-md">
-        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">RifqyTranslatePro</h1>
-        
-        <div class="flex space-x-2 text-sm">
-            <button onclick="goTab('text')" class="px-3 py-1 bg-indigo-600 rounded-lg hover:bg-indigo-500 transition">Teks</button>
-            <button onclick="goTab('media')" class="px-3 py-1 bg-indigo-600 rounded-lg hover:bg-indigo-500 transition">Media</button>
-            <button onclick="goTab('ai')" class="px-3 py-1 bg-purple-600 rounded-lg hover:bg-purple-500 transition shadow-[0_0_10px_rgba(168,85,247,0.4)]">Gemini AI</button>
+    <div id="mainHeader" class="shrink-0 h-[60px] px-4 bg-black/90 backdrop-blur border-b border-white/10 flex justify-between items-center z-50">
+        <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-wide select-none">
+            RifqyTranslate<span class="text-white text-[10px] align-top ml-1 border border-white/20 px-1 rounded bg-white/10">PRO</span>
+        </h1>
+        <div class="flex items-center gap-3">
+            <button onclick="setGeminiKey()" class="text-slate-500 hover:text-yellow-400 transition" title="API Key Gemini"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+            <button id="btnGhost" onclick="toggleGhostMode()" class="text-slate-500 hover:text-red-500 transition" title="Ghost Mode"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
         </div>
-    </header>
+    </div>
 
-    <main class="flex-grow overflow-hidden relative">
+    <main id="mainArea" class="flex-grow relative overflow-hidden bg-gradient-to-b from-slate-900 to-black">
         
-        <section id="tab-text" class="w-full h-full p-4 flex flex-col max-w-3xl mx-auto overflow-y-auto no-scrollbar">
-            
-            <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 mb-4 shadow-lg">
-                <div class="flex flex-col md:flex-row gap-4 items-center">
-                    <div class="w-full">
-                        <input type="text" id="searchSrc" onkeyup="filterLang('searchSrc', 'sourceLang')" placeholder="🔍 Cari bahasa asal..." class="w-full bg-slate-800 text-xs text-white px-3 py-2 rounded-t-lg outline-none border-b border-slate-700 placeholder-slate-500">
-                        <select id="sourceLang" class="w-full bg-slate-800 text-sm p-2 rounded-b-lg outline-none cursor-pointer">
-                            <option value="id">Indonesian</option>
-                            <option value="en">English</option>
-                            <option value="ja">Japanese</option>
-                        </select>
+        <section id="tab-text" class="w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar">
+            <div class="max-w-3xl w-full mx-auto space-y-4">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-400">INPUT TEKS</span>
+                        <div class="flex gap-2">
+                            <button onclick="checkClipboard()" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">Paste</button>
+                        </div>
                     </div>
-                    
-                    <button onclick="tukarBahasa()" class="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition">
-                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    <textarea id="txtInput" class="w-full bg-transparent outline-none text-lg resize-none min-h-[80px] placeholder-slate-600" placeholder="Ketik teks di sini..."></textarea>
+                </div>
+
+                <div class="flex justify-between items-center px-2">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="chkBionic" class="w-4 h-4 accent-blue-500 rounded cursor-pointer">
+                        <span class="text-xs text-slate-400 font-bold group-hover:text-white transition">Bionic Reading</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="chkSlang" class="w-4 h-4 accent-purple-500 rounded cursor-pointer" checked>
+                        <span class="text-xs text-slate-400 font-bold group-hover:text-white transition">Auto-Baku</span>
+                    </label>
+                </div>
+
+                <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-lg relative flex flex-col">
+                    <div class="flex justify-between items-center mb-2 z-20">
+                        <select id="valTxtTgt" class="bg-black/50 border border-white/20 rounded-lg px-3 py-1.5 text-sm outline-none text-blue-300 w-full max-w-[200px]">
+                            </select>
+                    </div>
+                    <div class="relative flex-grow min-h-[100px]">
+                        <textarea id="txtOutput" readonly class="w-full h-full bg-transparent outline-none text-lg resize-none text-blue-100 placeholder-slate-600" placeholder="Hasil Terjemahan..."></textarea>
+                        <div id="bionicOutput" class="hidden w-full h-full text-lg text-blue-100 overflow-y-auto no-scrollbar"></div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-white/5 flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <button onclick="copyText('txtOutput')" class="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold transition">Salin</button>
+                            <button onclick="openShareModal()" class="flex-1 bg-green-900/50 hover:bg-green-700 text-green-300 py-2 border border-green-500/50 rounded-lg text-xs font-bold transition">Bagikan</button>
+                            <button onclick="speakNatural('txtOutput', 'valTxtTgt')" class="flex-1 bg-purple-900/50 hover:bg-purple-700 text-purple-300 py-2 border border-purple-500/50 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z"></path></svg> Dengar</button>
+                        </div>
+                        <button onclick="kirimKeSmartAI('txtOutput')" class="w-full py-2 bg-indigo-900/50 hover:bg-indigo-700 border border-indigo-500/50 text-indigo-300 rounded-lg text-xs font-bold transition">🧠 Bedah Hasil dengan Gemini AI</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="exportToImage()" class="bg-slate-800 py-1.5 rounded-lg text-[10px] text-slate-300">🖼️ Export Card</button>
+                            <button onclick="saveToSnippet()" class="bg-slate-800 py-1.5 rounded-lg text-[10px] text-slate-300">⭐ Simpan Favorit</button>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="runTranslate()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold shadow-lg active:scale-95 transition">TERJEMAHKAN</button>
+            </div>
+        </section>
+
+        <section id="tab-voice" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar">
+            <div class="max-w-3xl w-full mx-auto flex flex-col h-full space-y-4">
+                <div class="flex items-center justify-between gap-2 bg-white/5 p-3 rounded-xl border border-white/10">
+                    <select id="voiceSrc" class="flex-1 bg-transparent text-[11px] font-bold outline-none text-blue-400"></select>
+                    <span class="text-slate-500">➜</span>
+                    <select id="voiceTgt" class="flex-1 bg-transparent text-[11px] font-bold outline-none text-purple-400"></select>
+                </div>
+                <div class="flex-grow flex flex-col gap-4">
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border-l-4 border-blue-500 min-h-[120px]">
+                        <p class="text-[10px] text-blue-500 font-bold mb-1">ANDA BERUCAP:</p>
+                        <p id="voiceTextIn" class="text-lg italic text-slate-300">Klik mic di bawah untuk mulai bicara...</p>
+                    </div>
+                    <div class="bg-indigo-900/20 p-4 rounded-2xl border-l-4 border-purple-500 flex-grow relative">
+                        <p class="text-[10px] text-purple-400 font-bold mb-1">TERJEMAHAN:</p>
+                        <p id="voiceTextOut" class="text-xl font-bold text-white">...</p>
+                        <button onclick="speakNatural('voiceTextOut', 'voiceTgt')" class="absolute bottom-3 right-3 p-2 bg-purple-600 rounded-full shadow-lg"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z"></path></svg></button>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center justify-center pb-6">
+                    <div id="waveAnim" class="hidden h-10 w-full flex items-center justify-center gap-1 mb-4">
+                        <div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div>
+                    </div>
+                    <button id="btnVoiceMic" onclick="startInstantVoice()" class="w-20 h-20 bg-red-600 hover:bg-red-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.5)] active:scale-90 transition-all">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                     </button>
-                    
-                    <div class="w-full">
-                        <input type="text" id="searchTgt" onkeyup="filterLang('searchTgt', 'targetLang')" placeholder="🔍 Cari bahasa tujuan..." class="w-full bg-slate-800 text-xs text-white px-3 py-2 rounded-t-lg outline-none border-b border-slate-700 placeholder-slate-500">
-                        <select id="targetLang" class="w-full bg-slate-800 text-sm p-2 rounded-b-lg outline-none cursor-pointer">
-                            <option value="en">English</option>
-                            <option value="id">Indonesian</option>
-                            <option value="ja">Japanese</option>
-                        </select>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-cyber" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar font-mono">
+            <div class="max-w-3xl w-full mx-auto space-y-4">
+                <div class="border border-green-500/30 rounded-xl p-4 bg-black cyber-glow">
+                    <h2 class="text-green-400 font-bold mb-2 text-sm">> CYBER_TOOLS</h2>
+                    <select id="cyberMode" onchange="togglePwd()" class="w-full bg-slate-900 border border-green-500/50 text-green-400 p-2 rounded mb-3 outline-none">
+                        <option value="hex">Text <-> Hex</option>
+                        <option value="base64">Text <-> Base64</option>
+                        <option value="stegano">Steganography (AES-256)</option>
+                    </select>
+                    <textarea id="cyberInput" class="w-full bg-slate-900 border border-green-500/20 text-green-300 p-2 rounded min-h-[100px] outline-none" placeholder="Masukkan Data..."></textarea>
+                    <input type="password" id="cyberPassword" class="hidden w-full bg-slate-900 border border-red-500/50 text-red-400 p-2 rounded mt-2 outline-none" placeholder="Password Enkripsi...">
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="runCyber('encode')" class="flex-1 bg-green-900/50 hover:bg-green-700 text-green-300 py-2 border border-green-500/50 rounded">ENCODE</button>
+                        <button onclick="runCyber('decode')" class="flex-1 bg-red-900/50 hover:bg-red-700 text-red-300 py-2 border border-red-500/50 rounded">DECODE</button>
+                    </div>
+                    <textarea id="cyberOutput" readonly class="w-full bg-black border border-green-500/20 text-green-400 p-2 rounded min-h-[100px] mt-3 outline-none break-all" placeholder="Output..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-media" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto no-scrollbar">
+            <div class="max-w-3xl w-full mx-auto space-y-4">
+                <div class="bg-white/5 border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-blue-500 transition-all relative">
+                    <input type="file" id="fileInput" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
+                    <div id="filePreview" class="space-y-2">
+                        <svg class="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="text-sm font-bold text-slate-400">Pilih / Drop Gambar untuk OCR</p>
                     </div>
                 </div>
-            </div>
-
-            <div class="flex-grow flex flex-col gap-4">
-                <textarea id="inputText" class="w-full h-1/2 bg-slate-900 border border-white/10 rounded-2xl p-4 resize-none outline-none focus:border-indigo-500 transition" placeholder="Ketik teks di sini..."></textarea>
-                <textarea id="outputText" readonly class="w-full h-1/2 bg-slate-800/50 border border-white/5 rounded-2xl p-4 resize-none outline-none text-indigo-100" placeholder="Hasil terjemahan..."></textarea>
+                <div id="ocrStatus" class="hidden text-xs text-blue-400 animate-pulse font-mono text-center italic">Scanning Image...</div>
+                <button onclick="processOCR()" class="w-full py-3 bg-blue-600 rounded-xl font-bold shadow-lg">SCAN & BEDAH AI</button>
             </div>
         </section>
 
-        <section id="tab-media" class="hidden w-full h-full p-4 flex flex-col justify-center items-center max-w-md mx-auto">
-            <div class="bg-slate-900 w-full p-6 rounded-3xl border border-white/10 shadow-2xl text-center">
-                <h2 class="text-lg font-bold mb-4 text-indigo-300">Scanner Cerdas</h2>
-                
-                <input type="file" id="mediaInput" accept="image/*, .pdf" class="block w-full text-sm text-slate-400 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-900/40 file:text-indigo-300 hover:file:bg-indigo-900/60 transition mb-6 cursor-pointer">
-                
-                <div class="text-left mb-6">
-                    <label class="block text-xs text-slate-400 mb-2 ml-1">Pilih Tindakan:</label>
-                    <select id="mediaAction" class="w-full bg-slate-800 text-sm p-3 rounded-xl outline-none border border-slate-700 focus:border-indigo-500 transition cursor-pointer">
-                        <option value="translate">🔄 Ekstrak & Taruh di Tab Teks</option>
-                        <option value="gemini">✨ Minta AI Rapikan & Ringkas</option>
-                    </select>
+        <section id="tab-ai" class="hidden w-full h-full flex flex-col p-4 overflow-hidden">
+            <div class="max-w-3xl w-full mx-auto h-full flex flex-col space-y-4">
+                <div id="aiChatBox" class="flex-grow bg-black/40 border border-white/10 rounded-2xl p-4 overflow-y-auto no-scrollbar space-y-4 text-sm">
+                    <div class="bg-indigo-900/30 p-3 rounded-lg border border-indigo-500/30 text-indigo-200">
+                        <strong>Gemini AI:</strong> Halo Rifqy! Aku siap membedah struktur bahasa, memperbaiki grammar, atau merangkum hasil scan foto kamu.
+                    </div>
                 </div>
-                
-                <button onclick="processMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-[0_0_15px_rgba(79,70,229,0.3)]">Proses File</button>
-                <div id="mediaStatus" class="hidden mt-4 text-xs font-medium text-indigo-400 animate-pulse bg-indigo-900/20 py-2 rounded-lg"></div>
-            </div>
-        </section>
-
-        <section id="tab-ai" class="hidden w-full h-full flex flex-col p-4 max-w-3xl mx-auto overflow-hidden">
-            <div class="flex justify-between items-center bg-slate-900 p-3 rounded-2xl border border-white/10 mb-3 shadow-md">
-                <select id="aiTone" class="bg-slate-800 text-xs text-indigo-300 px-3 py-1.5 rounded-lg outline-none border border-slate-700 cursor-pointer">
-                    <option value="Formal dan Sopan">👔 Formal</option>
-                    <option value="Santai, Gaul, dan Asik" selected>😎 Santai / Gaul</option>
-                    <option value="Profesional, Akurat, dan Detail">💼 Profesional</option>
-                </select>
-                <button onclick="clearAIChat()" class="text-xs text-red-400 hover:text-red-300 bg-red-900/20 hover:bg-red-900/40 px-3 py-1.5 rounded-lg transition font-medium border border-red-900/50">
-                    🗑️ Hapus Chat
-                </button>
-            </div>
-
-            <div id="aiChatBox" class="flex-grow bg-slate-950/50 border border-white/5 rounded-2xl p-4 overflow-y-auto no-scrollbar space-y-5 text-sm mb-3">
+                <div class="flex gap-2 bg-slate-900 p-2 rounded-xl border border-white/10">
+                    <input id="aiInput" type="text" class="flex-grow bg-transparent outline-none px-2 text-sm" placeholder="Tanya sesuatu ke Gemini...">
+                    <button onclick="askGemini()" class="p-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg></button>
                 </div>
-
-            <div class="flex gap-2 bg-slate-900 p-2 rounded-2xl border border-white/10 shadow-xl">
-                <input id="aiInput" type="text" class="flex-grow bg-transparent outline-none px-4 text-sm text-white placeholder-slate-500" placeholder="Tanya Gemini sesuatu...">
-                <button onclick="askGemini()" class="p-3 bg-purple-600 hover:bg-purple-500 rounded-xl transition shadow-[0_0_10px_rgba(168,85,247,0.4)]">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                </button>
             </div>
         </section>
 
     </main>
 
+    <nav id="mainNav" class="shrink-0 h-[70px] bg-black border-t border-white/10 flex justify-around items-center z-50 pb-2 pt-2">
+        <button onclick="goTab('text')" id="nav-text" class="flex flex-col items-center gap-1 text-blue-500 font-bold scale-110 transition group"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg><span class="text-[9px] tracking-widest">TEKS</span></button>
+        <button onclick="goTab('voice')" id="nav-voice" class="flex flex-col items-center gap-1 text-slate-500 hover:text-red-400 transition group"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg><span class="text-[9px] tracking-widest">VOICE</span></button>
+        <button onclick="goTab('cyber')" id="nav-cyber" class="flex flex-col items-center gap-1 text-slate-500 hover:text-green-400 transition group"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg><span class="text-[9px] font-mono tracking-widest">CYBER</span></button>
+        <button onclick="goTab('media')" id="nav-media" class="flex flex-col items-center gap-1 text-slate-500 hover:text-pink-400 transition group"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="text-[9px] tracking-widest">MEDIA</span></button>
+        <button onclick="goTab('ai')" id="nav-ai" class="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-400 transition group"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span class="text-[9px] tracking-widest">GEMINI</span></button>
+    </nav>
+
+    <div id="modalQR" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-slate-900 w-full max-w-sm rounded-2xl border border-white/20 p-6 shadow-2xl text-center">
+            <h3 class="text-lg font-bold mb-4 text-white">Share Result</h3>
+            <div id="qrContainer" class="bg-white p-4 rounded-xl inline-block mb-4 mx-auto"></div>
+            <div class="flex gap-2 mb-4">
+                <button onclick="window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(document.getElementById('txtOutput').value)}`)" class="flex-1 bg-green-600 py-2 rounded-lg text-sm font-bold">WhatsApp</button>
+            </div>
+            <button onclick="document.getElementById('modalQR').classList.add('hidden')" class="w-full py-2 bg-white/10 rounded-lg text-slate-300">Tutup</button>
+        </div>
+    </div>
+
+    <script src="rifqy-db.js"></script>
     <script src="script.js"></script>
-    <script src="rifqy-media.js"></script>
+    <script src="rifqy-voice.js"></script>
+    <script src="rifqy-tools.js"></script>
     <script src="rifqy-ai-core.js"></script>
 </body>
 </html>
