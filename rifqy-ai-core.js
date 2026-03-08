@@ -23,14 +23,13 @@ async function processOCR() {
         const aiInput = document.getElementById('aiInput');
         aiInput.value = `Tolong rapikan teks hasil scan OCR ini, perbaiki jika ada typo, dan jelaskan intinya: "${teks}"`;
         
-        // Jalankan fungsi AI secara otomatis
+        // AI secara otomatis
         setTimeout(() => {
             askGemini();
             status.classList.add('hidden');
         }, 500);
 
-    } catch(e) { 
-        alert("OCR Gagal membaca gambar."); 
+    } catch(e) {OCR Gagal membaca gambar."); 
         status.classList.add('hidden');
     }
 }
@@ -48,8 +47,7 @@ function kirimKeSmartAI(sourceId) {
 // FUNGSI UTAMA: Chat dengan Gemini via Vercel API
 async function askGemini() {
     const input = document.getElementById('aiInput');
-    const chatBox = document.getElementById('aiChatBox');
-    const promptText = input.value.trim();
+    const chatBox = document.getElementById('aiChatBox');    const promptText = input.value.trim();
 
     if(!promptText) return;
 
@@ -89,16 +87,19 @@ async function askGemini() {
         document.getElementById(loadingId).remove();
 
         // Cek jika ada error dari server
-        if (data.error) {
-            throw new Error(data.error);
+        if (!res.ok || data.error) {
+            throw new Error(data.error?.message || data.error || `Server Error: ${res.status}`);
         }
 
-        // 4. Tampilkan Chat AI
-        // Mengubah format Markdown (**) menjadi bold HTML
-        let aiResponse = data.candidates[0].content.parts[0].text;
+        // 4. Validasi struktur respons AI
+        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            throw new Error("Respons AI tidak valid atau kosong.");
+        }
+
+        // 5. Tampilkan Chat AI        let aiResponse = data.candidates[0].content.parts[0].text;
         aiResponse = aiResponse.replace(/\n/g, '<br>');
         aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
-        
+
         chatBox.innerHTML += `
             <div class="flex justify-start mb-4">
                 <div class="bg-indigo-900/30 text-indigo-100 text-xs py-3 px-4 rounded-xl rounded-tl-none border border-indigo-500/50 max-w-[90%] shadow-[0_0_15px_rgba(99,102,241,0.1)] leading-relaxed">
@@ -111,10 +112,12 @@ async function askGemini() {
 
     } catch(e) {
         document.getElementById(loadingId)?.remove();
+        // Perbaikan utama: Ambil pesan error yang benar-benar bisa ditampilkan
+        const errorMessage = e.message || e.toString() || "Terjadi kesalahan tak terduga.";
         chatBox.innerHTML += `
             <div class="flex justify-start mb-4">
                 <div class="bg-red-900/30 text-red-300 text-xs py-2 px-3 rounded-xl rounded-tl-none border border-red-500/50">
-                    <strong>Error:</strong> ${e.message || "Gagal menghubungi server Vercel."}
+                    <strong>Error:</strong> ${errorMessage}
                 </div>
             </div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
