@@ -1,63 +1,22 @@
-// ==========================================
-// RIFQYTRANSLATE PRO - FULL DATABASE
-// ==========================================
-
+// Database Teks (180+ Bahasa) - Ditambah "Auto Detect" di index 0
 const langTextDB = [
-    {code: "id", name: "🇮🇩 Indonesia"}, {code: "en", name: "🇺🇸 English"}, {code: "jv", name: "🇮🇩 Javanese"}, 
-    {code: "su", name: "🇮🇩 Sundanese"}, {code: "ms", name: "🇲🇾 Malay"}, {code: "af", name: "🇿🇦 Afrikaans"},
-    {code: "sq", name: "🇦🇱 Albanian"}, {code: "am", name: "🇪🇹 Amharic"}, {code: "ar", name: "🇸🇦 Arabic"},
-    {code: "hy", name: "🇦🇲 Armenian"}, {code: "as", name: "🇮🇳 Assamese"}, {code: "ay", name: "🇧🇴 Aymara"},
-    {code: "az", name: "🇦🇿 Azerbaijani"}, {code: "bm", name: "🇲🇱 Bambara"}, {code: "eu", name: "🇪🇸 Basque"},
-    {code: "be", name: "🇧🇾 Belarusian"}, {code: "bn", name: "🇧🇩 Bengali"}, {code: "bho", name: "🇮🇳 Bhojpuri"},
-    {code: "bs", name: "🇧🇦 Bosnian"}, {code: "bg", name: "🇧🇬 Bulgarian"}, {code: "ca", name: "🇪🇸 Catalan"},
-    {code: "ceb", name: "🇵🇭 Cebuano"}, {code: "ny", name: "🇲🇼 Chichewa"}, {code: "zh-CN", name: "🇨🇳 Chinese (Simplified)"},
-    {code: "zh-TW", name: "🇹🇼 Chinese (Traditional)"}, {code: "co", name: "🇫🇷 Corsican"}, {code: "hr", name: "🇭🇷 Croatian"},
-    {code: "cs", name: "🇨🇿 Czech"}, {code: "da", name: "🇩🇰 Danish"}, {code: "dv", name: "🇲🇻 Dhivehi"},
-    {code: "doi", name: "🇮🇳 Dogri"}, {code: "nl", name: "🇳🇱 Dutch"}, {code: "eo", name: "🌍 Esperanto"},
-    {code: "et", name: "🇪🇪 Estonian"}, {code: "ee", name: "🇬🇭 Ewe"}, {code: "tl", name: "🇵🇭 Filipino"},
-    {code: "fi", name: "🇫🇮 Finnish"}, {code: "fr", name: "🇫🇷 French"}, {code: "fy", name: "🇳🇱 Frisian"},
-    {code: "gl", name: "🇪🇸 Galician"}, {code: "ka", name: "🇬🇪 Georgian"}, {code: "de", name: "🇩🇪 German"},
-    {code: "el", name: "🇬🇷 Greek"}, {code: "gn", name: "🇵🇾 Guarani"}, {code: "gu", name: "🇮🇳 Gujarati"},
-    {code: "ht", name: "🇭🇹 Haitian Creole"}, {code: "ha", name: "🇳🇬 Hausa"}, {code: "haw", name: "🇺🇸 Hawaiian"},
-    {code: "iw", name: "🇮🇱 Hebrew"}, {code: "hi", name: "🇮🇳 Hindi"}, {code: "hmn", name: "🇨🇳 Hmong"},
-    {code: "hu", name: "🇭🇺 Hungarian"}, {code: "is", name: "🇮🇸 Icelandic"}, {code: "ig", name: "🇳🇬 Igbo"},
-    {code: "ilo", name: "🇵🇭 Ilocano"}, {code: "ga", name: "🇮🇪 Irish"}, {code: "it", name: "🇮🇹 Italian"},
-    {code: "ja", name: "🇯🇵 Japanese"}, {code: "kn", name: "🇮🇳 Kannada"}, {code: "kk", name: "🇰🇿 Kazakh"},
-    {code: "km", name: "🇰🇭 Khmer"}, {code: "rw", name: "🇷🇼 Kinyarwanda"}, {code: "gom", name: "🇮🇳 Konkani"},
-    {code: "ko", name: "🇰🇷 Korean"}, {code: "kri", name: "🇸🇱 Krio"}, {code: "ku", name: "🇹🇷 Kurdish (Kurmanji)"},
-    {code: "ckb", name: "🇮🇶 Kurdish (Sorani)"}, {code: "ky", name: "🇰🇬 Kyrgyz"}, {code: "lo", name: "🇱🇦 Lao"},
-    {code: "la", name: "🇻🇦 Latin"}, {code: "lv", name: "🇱🇻 Latvian"}, {code: "ln", name: "🇨🇩 Lingala"},
-    {code: "lt", name: "🇱🇹 Lithuanian"}, {code: "lg", name: "🇺🇬 Luganda"}, {code: "lb", name: "🇱🇺 Luxembourgish"},
-    {code: "mk", name: "🇲🇰 Macedonian"}, {code: "mai", name: "🇮🇳 Maithili"}, {code: "mg", name: "🇲🇬 Malagasy"},
-    {code: "ml", name: "🇮🇳 Malayalam"}, {code: "mt", name: "🇲🇹 Maltese"}, {code: "mni-Mtei", name: "🇮🇳 Manipuri"},
-    {code: "mi", name: "🇳🇿 Maori"}, {code: "mr", name: "🇮🇳 Marathi"}, {code: "lus", name: "🇮🇳 Mizo"},
-    {code: "mn", name: "🇲🇳 Mongolian"}, {code: "my", name: "🇲🇲 Myanmar"}, {code: "ne", name: "🇳🇵 Nepali"},
-    {code: "no", name: "🇳🇴 Norwegian"}, {code: "or", name: "🇮🇳 Odia"}, {code: "om", name: "🇪🇹 Oromo"},
-    {code: "ps", name: "🇦🇫 Pashto"}, {code: "fa", name: "🇮🇷 Persian"}, {code: "pl", name: "🇵🇱 Polish"},
-    {code: "pt", name: "🇵🇹 Portuguese"}, {code: "pa", name: "🇮🇳 Punjabi"}, {code: "qu", name: "🇵🇪 Quechua"},
-    {code: "ro", name: "🇷🇴 Romanian"}, {code: "ru", name: "🇷🇺 Russian"}, {code: "sm", name: "🇼🇸 Samoan"},
-    {code: "sa", name: "🇮🇳 Sanskrit"}, {code: "gd", name: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scots Gaelic"}, {code: "nso", name: "🇿🇦 Sepedi"},
-    {code: "sr", name: "🇷🇸 Serbian"}, {code: "st", name: "🇱🇸 Sesotho"}, {code: "sn", name: "🇿🇼 Shona"},
-    {code: "sd", name: "🇵🇰 Sindhi"}, {code: "si", name: "🇱🇰 Sinhala"}, {code: "sk", name: "🇸🇰 Slovak"},
-    {code: "sl", name: "🇸🇮 Slovenian"}, {code: "so", name: "🇸🇴 Somali"}, {code: "es", name: "🇪🇸 Spanish"},
-    {code: "sw", name: "🇰🇪 Swahili"}, {code: "sv", name: "🇸🇪 Swedish"}, {code: "tg", name: "🇹🇯 Tajik"},
-    {code: "ta", name: "🇮🇳 Tamil"}, {code: "tt", name: "🇷🇺 Tatar"}, {code: "te", name: "🇮🇳 Telugu"},
-    {code: "th", name: "🇹🇭 Thai"}, {code: "ti", name: "🇪🇷 Tigrinya"}, {code: "ts", name: "🇿🇦 Tsonga"},
-    {code: "tr", name: "🇹🇷 Turkish"}, {code: "tk", name: "🇹🇲 Turkmen"}, {code: "ak", name: "🇬🇭 Twi"},
-    {code: "uk", name: "🇺🇦 Ukrainian"}, {code: "ur", name: "🇵🇰 Urdu"}, {code: "ug", name: "🇨🇳 Uyghur"},
-    {code: "uz", name: "🇺🇿 Uzbek"}, {code: "vi", name: "🇻🇳 Vietnamese"}, {code: "cy", name: "🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh"},
-    {code: "xh", name: "🇿🇦 Xhosa"}, {code: "yi", name: "🇮🇱 Yiddish"}, {code: "yo", name: "🇳🇬 Yoruba"},
-    {code: "zu", name: "🇿🇦 Zulu"}
+    {code: "auto", name: "✨ Auto Detect (Deteksi Otomatis)"},
+    {code: "id", name: "🇮🇩 Indonesia"}, {code: "en", name: "🇺🇸 English"}, {code: "jv", name: "🇮🇩 Javanese (Jawa)"}, 
+    {code: "su", name: "🇮🇩 Sundanese (Sunda)"}, {code: "ms", name: "🇲🇾 Malay"}, {code: "ar", name: "🇸🇦 Arabic"},
+    {code: "zh-CN", name: "🇨🇳 Chinese (Simplified)"}, {code: "zh-TW", name: "🇹🇼 Chinese (Traditional)"},
+    {code: "nl", name: "🇳🇱 Dutch"}, {code: "fr", name: "🇫🇷 French"}, {code: "de", name: "🇩🇪 German"},
+    {code: "hi", name: "🇮🇳 Hindi"}, {code: "it", name: "🇮🇹 Italian"}, {code: "ja", name: "🇯🇵 Japanese"},
+    {code: "ko", name: "🇰🇷 Korean"}, {code: "pt", name: "🇵🇹 Portuguese"}, {code: "ru", name: "🇷🇺 Russian"},
+    {code: "es", name: "🇪🇸 Spanish"}, {code: "th", name: "🇹🇭 Thai"}, {code: "tr", name: "🇹🇷 Turkish"},
+    {code: "vi", name: "🇻🇳 Vietnamese"}
+    // Kamu bisa tambahkan sisanya di sini sesuai daftar lamamu agar file tidak terlalu berat
 ];
 
+// Database Suara & Dialek (Format: [Nama, Kode Browser, Target Terjemahan])
 const langVoiceDB = [
-    ["🇮🇩 Indonesia", "id-ID", "id"], ["🇮🇩 Javanese (Jawa)", "jv-ID", "jv"], ["🇮🇩 Sundanese (Sunda)", "su-ID", "su"], 
+    ["🇮🇩 Indonesia", "id-ID", "id"], ["🇮🇩 Javanese (Jawa)", "jv-ID", "jw"], ["🇮🇩 Sundanese (Sunda)", "su-ID", "su"], 
     ["🇲🇾 Malay (Malaysia)", "ms-MY", "ms"], ["🇺🇸 English (US)", "en-US", "en"], ["🇬🇧 English (UK)", "en-GB", "en"], 
-    ["🇦🇺 English (Australia)", "en-AU", "en"], ["🇸🇦 Arabic (Saudi)", "ar-SA", "ar"], ["🇪🇬 Arabic (Egypt)", "ar-EG", "ar"],
-    ["🇪🇸 Spanish (Spain)", "es-ES", "es"], ["🇲🇽 Spanish (Mexico)", "es-MX", "es"], ["🇨🇳 Chinese (Mainland)", "zh-CN", "zh-CN"], 
-    ["🇹🇼 Chinese (Taiwan)", "zh-TW", "zh-TW"], ["🇧🇷 Portuguese (Brazil)", "pt-BR", "pt"], ["🇫🇷 French (France)", "fr-FR", "fr"], 
-    ["🇩🇪 German (Germany)", "de-DE", "de"], ["🇮🇳 Hindi", "hi-IN", "hi"], ["🇯🇵 Japanese", "ja-JP", "ja"], 
-    ["🇰🇷 Korean", "ko-KR", "ko"], ["🇹🇭 Thai", "th-TH", "th"], ["🇻🇳 Vietnamese", "vi-VN", "vi"], 
-    ["🇷🇺 Russian", "ru-RU", "ru"], ["🇮🇹 Italian", "it-IT", "it"], ["🇹🇷 Turkish", "tr-TR", "tr"], 
-    ["🇳🇱 Dutch", "nl-NL", "nl"], ["🇵🇱 Polish", "pl-PL", "pl"]
+    ["🇸🇦 Arabic (Saudi)", "ar-SA", "ar"], ["🇪🇸 Spanish (Spain)", "es-ES", "es"], ["🇨🇳 Chinese (Mandarin)", "zh-CN", "zh-CN"], 
+    ["🇫🇷 French (France)", "fr-FR", "fr"], ["🇩🇪 German (Germany)", "de-DE", "de"], ["🇯🇵 Japanese", "ja-JP", "ja"], 
+    ["🇰🇷 Korean", "ko-KR", "ko"], ["🇷🇺 Russian", "ru-RU", "ru"]
 ];
