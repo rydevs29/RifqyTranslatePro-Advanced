@@ -1,82 +1,80 @@
-// ==========================================
-// CORE TRANSLATE ENGINE & UI
-// ==========================================
-
-window.onload = () => {
-    initDB();
-};
+window.onload = () => { initDB(); };
 
 function initDB() {
+    const tSrc = document.getElementById('valTxtSrc');
     const tTgt = document.getElementById('valTxtTgt');
     const vSrc = document.getElementById('voiceSrc');
     const vTgt = document.getElementById('voiceTgt');
 
+    // Kosongkan dulu
+    tSrc.innerHTML = ''; tTgt.innerHTML = ''; vSrc.innerHTML = ''; vTgt.innerHTML = '';
+
     langTextDB.forEach(l => {
-        tTgt.appendChild(new Option(l.name, l.code));
-        vTgt.appendChild(new Option(l.name, l.code));
+        tSrc.appendChild(new Option(l.name, l.code));
+        // Target tidak butuh Auto Detect, jadi skip jika code == 'auto'
+        if(l.code !== 'auto') tTgt.appendChild(new Option(l.name, l.code));
     });
+
     langVoiceDB.forEach(v => {
-        vSrc.appendChild(new Option(v[0], v[1]));
+        vSrc.appendChild(new Option(v[0], v[1])); // Source dialek
+        vTgt.appendChild(new Option(v[0], v[2])); // Target bahasa
     });
+}
+
+function filterLang(inputId, selectId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    const options = document.getElementById(selectId).options;
+    for (let i = 0; i < options.length; i++) {
+        const text = options[i].text.toLowerCase();
+        options[i].style.display = text.includes(filter) ? "" : "none";
+    }
+}
+
+function tukarBahasa(srcId, tgtId) {
+    const src = document.getElementById(srcId);
+    const tgt = document.getElementById(tgtId);
+    if(src.value === 'auto') return alert("Pilih bahasa spesifik dulu sebelum menukar!");
+    const temp = src.value;
+    src.value = tgt.value;
+    tgt.value = temp;
 }
 
 function goTab(tab) {
     ['text', 'voice', 'cyber', 'media', 'ai'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add('hidden');
         let nav = document.getElementById(`nav-${t}`);
-        nav.classList.replace('text-blue-500', 'text-slate-500');
-        nav.classList.replace('text-red-400', 'text-slate-500');
-        nav.classList.replace('text-green-400', 'text-slate-500');
-        nav.classList.replace('text-pink-400', 'text-slate-500');
-        nav.classList.replace('text-indigo-400', 'text-slate-500');
-        nav.classList.remove('scale-110', 'font-bold');
+        nav.classList.remove('scale-110', 'font-bold', 'text-blue-500', 'text-red-400', 'text-green-400', 'text-pink-400', 'text-indigo-400');
+        nav.classList.add('text-slate-500');
     });
     
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
     let navActive = document.getElementById(`nav-${tab}`);
+    navActive.classList.remove('text-slate-500');
     navActive.classList.add('scale-110', 'font-bold');
     
     const colors = {text:'text-blue-500', voice:'text-red-400', cyber:'text-green-400', media:'text-pink-400', ai:'text-indigo-400'};
-    navActive.classList.replace('text-slate-500', colors[tab]);
-}
-
-function toggleGhostMode() {
-    document.getElementById('mainArea').classList.toggle('ghost-active');
-    document.getElementById('btnGhost').classList.toggle('text-red-500');
+    navActive.classList.add(colors[tab].split('-')[1] + '-' + colors[tab].split('-')[2]); // Ekstrak warna
 }
 
 async function runTranslate() {
     let rawText = document.getElementById('txtInput').value.trim();
     if(!rawText) return;
     
-    let textToTranslate = document.getElementById('chkSlang').checked ? rawText.replace(/yg/gi, "yang").replace(/gk/gi, "tidak") : rawText;
+    let src = document.getElementById('valTxtSrc').value;
     let tgt = document.getElementById('valTxtTgt').value;
     let outEl = document.getElementById('txtOutput');
     outEl.value = "Menerjemahkan...";
 
     try {
-        let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tgt}&dt=t&q=${encodeURIComponent(textToTranslate)}`;
+        // Jika src adalah 'auto', API Google akan otomatis mendeteksi bahasa
+        let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${src}&tl=${tgt}&dt=t&q=${encodeURIComponent(rawText)}`;
         let res = await fetch(url);
         let json = await res.json();
-        let result = json[0].map(x => x[0]).join('');
-        
-        if(document.getElementById('chkBionic').checked) {
-            outEl.classList.add('hidden');
-            let bioEl = document.getElementById('bionicOutput');
-            bioEl.classList.remove('hidden');
-            bioEl.innerHTML = result.split(' ').map(w => `<span class="bionic-bold">${w.substring(0, Math.ceil(w.length/2))}</span><span class="bionic-dim">${w.substring(Math.ceil(w.length/2))}</span>`).join(' ');
-        } else {
-            outEl.classList.remove('hidden');
-            document.getElementById('bionicOutput').classList.add('hidden');
-            outEl.value = result;
-        }
-    } catch(err) { outEl.value = "Error koneksi API Translate."; }
+        outEl.value = json[0].map(x => x[0]).join('');
+    } catch(err) { outEl.value = "Error koneksi Translate."; }
 }
 
-function copyText(id) { navigator.clipboard.writeText(document.getElementById(id).value); alert("Teks Disalin!"); }
-async function checkClipboard() { try { document.getElementById('txtInput').value = await navigator.clipboard.readText(); } catch(e){} }
-function openShareModal() {
-    document.getElementById('modalQR').classList.remove('hidden');
-    document.getElementById('qrContainer').innerHTML = '';
-    new QRCode(document.getElementById('qrContainer'), { text: document.getElementById('txtOutput').value, width: 150, height: 150 });
+function copyText(id) {
+    navigator.clipboard.writeText(document.getElementById(id).value || document.getElementById(id).innerText);
+    alert("Teks Tersalin!");
 }
